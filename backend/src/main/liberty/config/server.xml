@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="web_lab_3">
+
+    <featureManager>
+        <feature>restfulWS-3.1</feature>
+        <feature>jsonb-3.0</feature>
+        <feature>jsonp-2.1</feature>
+        <feature>cdi-4.0</feature>
+        <feature>persistence-3.1</feature>
+        <feature>beanValidation-3.0</feature>
+        <feature>mpConfig-3.1</feature>
+        <feature>mpOpenAPI-4.0</feature>
+    </featureManager>
+
+    <variable name="HTTP_PORT" defaultValue="8080"/>
+    <variable name="DB_HOST" defaultValue="localhost"/>
+    <variable name="DB_PORT" defaultValue="5432"/>
+    <variable name="DB_NAME" defaultValue="students"/>
+    <variable name="DB_USER" defaultValue="students"/>
+    <variable name="DB_PASSWORD" defaultValue="students"/>
+
+    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="${HTTP_PORT}" httpsPort="-1"/>
+
+    <library id="postgresLib">
+        <fileset dir="${server.config.dir}/jdbc" includes="*.jar"/>
+    </library>
+
+    <dataSource id="studentsDS" jndiName="jdbc/studentsDS">
+        <jdbcDriver libraryRef="postgresLib"/>
+        <properties.postgresql serverName="${DB_HOST}" portNumber="${DB_PORT}" databaseName="${DB_NAME}"
+                               user="${DB_USER}" password="${DB_PASSWORD}"/>
+    </dataSource>
+
+    <webApplication location="web_lab_3.war" contextRoot="/"/>
+
+    <logging consoleLogLevel="INFO" consoleFormat="SIMPLE" hideMessage="FFDC1015I"/>
+</server>
