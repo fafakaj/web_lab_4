@@ -1,6 +1,6 @@
-import { BehaviorSubject, Subject, debounceTime, distinctUntilChanged, filter, map, merge, scan, switchMap } from "rxjs";
+import { BehaviorSubject, Subject, combineLatest, debounceTime, distinctUntilChanged, filter, map, scan, startWith, switchMap } from "rxjs";
 import { getStudents } from "../api/students.js";
-import { PATTERNS } from "../domain/student.js";
+import { normalizeName, PATTERNS } from "../domain/student.js";
 import { loadWithStatus } from "./fromRequest.js";
 
 export const DEFAULT_PARAMS = {
@@ -18,19 +18,18 @@ export const DEFAULT_PARAMS = {
 
 export const INITIAL_LIST_STATE = { status: "loading", data: null, error: null };
 
-function isReadyToSearch(params) {
-    const name = params.full_name.trim();
-    return (name === "" || PATTERNS.nameSearch.test(name))
-        && (params.group === "" || PATTERNS.group.test(params.group.toUpperCase()))
-        && (params.room === "" || PATTERNS.room.test(params.room));
+function toQuery(params) {
+    return { ...params, full_name: normalizeName(params.full_name), group: params.group.toUpperCase() };
 }
 
-function toQuery(params) {
-    return {
-        ...params,
-        full_name: params.full_name.trim().replace(/\s+/g, " "),
-        group: params.group.toUpperCase(),
-    };
+function isReadyToSearch(query) {
+    return (query.full_name === "" || PATTERNS.nameSearch.test(query.full_name))
+        && (query.group === "" || PATTERNS.group.test(query.group))
+        && (query.room === "" || PATTERNS.room.test(query.room));
+}
+
+function sameQuery(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
 }
 
 export function createStudentList() {
@@ -39,13 +38,13 @@ export function createStudentList() {
 
     const query$ = params$.pipe(
         debounceTime(300),
-        filter(isReadyToSearch),
         map(toQuery),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+        filter(isReadyToSearch),
+        distinctUntilChanged(sameQuery)
     );
 
-    const state$ = merge(query$, reload$.pipe(map(() => toQuery(params$.value)))).pipe(
-        switchMap((query) => loadWithStatus((signal) => getStudents(query, signal))),
+    const state$ = combineLatest([query$, reload$.pipe(startWith(null))]).pipe(
+        switchMap(([query]) => loadWithStatus((signal) => getStudents(query, signal))),
         scan((previous, next) => ({ ...next, data: next.data ?? previous.data }), INITIAL_LIST_STATE)
     );
 

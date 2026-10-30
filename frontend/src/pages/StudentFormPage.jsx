@@ -18,7 +18,7 @@ export default function StudentFormPage() {
     const navigate = useNavigate();
 
     const initial$ = useMemo(
-        () => (isEdit ? loadWithStatus((signal) => getStudent(isu, signal)) : of({ status: "success", data: null })),
+        () => (isEdit ? loadWithStatus((signal) => getStudent(isu, signal)) : of({ status: "success", data: emptyStudent() })),
         [isEdit, isu]
     );
     const loaded = useObservable(initial$, { status: "loading" });
@@ -27,7 +27,7 @@ export default function StudentFormPage() {
 
     useEffect(() => {
         if (loaded.status === "success") {
-            setForm(loaded.data ? toStudentForm(loaded.data) : emptyStudent());
+            setForm(toStudentForm(loaded.data));
         }
     }, [loaded]);
 

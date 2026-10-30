@@ -1,4 +1,4 @@
-import { DORMITORIES, SORT_FIELDS } from "../domain/student.js";
+import { DORMITORIES, PATTERNS, SORT_FIELDS } from "../domain/student.js";
 
 export default function Filters({ params, onChange, onReset }) {
     function handleChange(event) {
@@ -11,7 +11,7 @@ export default function Filters({ params, onChange, onReset }) {
             <p>
                 <label htmlFor="filter-full_name">Поиск по ФИО</label>
                 <input id="filter-full_name" name="full_name" value={params.full_name} onChange={handleChange}
-                       maxLength={100} pattern="[A-Za-zА-ЯЁа-яё' \-]{2,}" placeholder="Иванов" />
+                       maxLength={100} pattern={PATTERNS.nameSearch.source} placeholder="Иванов" />
             </p>
             <p>
                 <label htmlFor="filter-group">Группа</label>
@@ -30,7 +30,7 @@ export default function Filters({ params, onChange, onReset }) {
             <p>
                 <label htmlFor="filter-room">Комната</label>
                 <input id="filter-room" name="room" value={params.room} onChange={handleChange}
-                       maxLength={4} pattern="[1-9][0-9]{3}" inputMode="numeric" placeholder="1205" />
+                       maxLength={4} pattern={PATTERNS.room.source} inputMode="numeric" placeholder="1205" />
             </p>
             <p>
                 <label htmlFor="filter-is_foreign">Иностранец</label>

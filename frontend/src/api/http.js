@@ -76,12 +76,7 @@ async function readBody(response) {
 
 let refreshing = null;
 
-async function doRefresh() {
-    const session = getSession();
-    if (!session) {
-        return false;
-    }
-
+async function doRefresh(session) {
     const response = await send("POST", "/api/auth/refresh", { refresh_token: session.refresh_token });
     if (!response.ok && response.status < 500) {
         return false;
@@ -104,7 +99,7 @@ function refreshOnce(usedToken) {
         return Promise.resolve(true);
     }
     if (!refreshing) {
-        refreshing = doRefresh().finally(() => {
+        refreshing = doRefresh(session).finally(() => {
             refreshing = null;
         });
     }
@@ -112,17 +107,16 @@ function refreshOnce(usedToken) {
 }
 
 export async function request(method, url, body, signal) {
-    const token = getSession()?.access_token;
+    let token = getSession()?.access_token;
     let response = await send(method, url, body, token, signal);
 
-    if (response.status === 401) {
-        if (token && await refreshOnce(token)) {
-            response = await send(method, url, body, getSession()?.access_token, signal);
-        }
-        if (response.status === 401) {
-            clearSession();
-            onSessionExpired();
-        }
+    if (response.status === 401 && token && await refreshOnce(token)) {
+        token = getSession()?.access_token;
+        response = await send(method, url, body, token, signal);
+    }
+    if (response.status === 401 && getSession()?.access_token === token) {
+        clearSession();
+        onSessionExpired();
     }
 
     return readBody(response);

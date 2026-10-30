@@ -23,7 +23,7 @@ export default function App() {
                         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                         <Route path="/students" element={<ProtectedRoute><ListPage /></ProtectedRoute>} />
                         <Route path="/students/new" element={<ProtectedRoute role="ADMIN"><StudentFormPage key="new" /></ProtectedRoute>} />
-                        <Route path="/students/:isu"element={<ProtectedRoute><StudentPage /></ProtectedRoute>} />
+                        <Route path="/students/:isu" element={<ProtectedRoute><StudentPage /></ProtectedRoute>} />
                         <Route path="/students/:isu/edit" element={<ProtectedRoute role="ADMIN"><StudentFormPage key="edit" /></ProtectedRoute>} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>

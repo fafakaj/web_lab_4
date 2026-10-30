@@ -24,7 +24,7 @@ body {
     padding: 0;
 }
 
-header, main, footer {
+header, main {
     max-width: 900px;
     margin: 0 auto;
     padding: 10px 20px;
@@ -53,12 +53,6 @@ main {
     border: 1px solid var(--accent-line);
     margin-top: 20px;
     padding-bottom: 20px;
-}
-
-footer {
-    color: var(--muted);
-    font-size: 14px;
-    text-align: center;
 }
 
 a:focus-visible,
@@ -100,9 +94,7 @@ th {
     font-size: 14px;
 }
 
-
-td a {
-    margin-right: 8px;
+#students-table td:last-child a {
     color: var(--accent);
 }
 
@@ -124,20 +116,8 @@ td a {
     grid-column: 1 / -1;
 }
 
-.filters-actions .button {
-    margin-left: 8px;
-}
-
 .filters input:invalid:not(:placeholder-shown) {
     border: 2px solid var(--ink);
-}
-
-.status-line {
-    margin: 0 0 12px;
-}
-
-.status-line:empty {
-    display: none;
 }
 
 #student-form {
@@ -187,23 +167,15 @@ input:disabled {
     color: var(--muted);
 }
 
-.was-submitted input:invalid,
-.was-submitted select:invalid,
-.was-submitted textarea:invalid,
-.has-error {
-    border: 2px solid var(--ink);
-}
-
-.field-error, .form-error, .status-line {
+.field-error, .form-error {
     display: block;
     font-size: 14px;
     font-weight: 600;
     color: var(--ink);
 }
 
-.field-error:not(:empty)::before,
-.form-error:not(:empty)::before,
-.status-line:not(:empty)::before {
+.field-error::before,
+.form-error::before {
     content: "! ";
 }
 
@@ -277,7 +249,7 @@ button:hover, .button:hover {
 }
 
 @media (max-width: 700px) {
-    header, main, footer {
+    header, main {
         padding: 10px;
     }
 
@@ -285,10 +257,6 @@ button:hover, .button:hover {
     .filters {
         grid-template-columns: 1fr;
     }
-}
-
-[hidden] {
-    display: none !important;
 }
 
 .header-row {
@@ -323,17 +291,6 @@ button:hover, .button:hover {
     justify-content: space-between;
     gap: 8px 16px;
     margin-top: 12px;
-}
-
-.pagination:empty {
-    display: none;
-}
-
-.button-disabled,
-.button-disabled:hover {
-    color: var(--muted);
-    background-color: var(--bg);
-    cursor: default;
 }
 
 .button-danger {

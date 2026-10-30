@@ -19,13 +19,14 @@ export const SORT_FIELDS = {
 export const PATTERNS = {
     isu: /^[0-9]{6}$/,
     group: /^[A-Z][0-9]{4}$/,
-    nameSearch: /^[A-Za-zА-ЯЁа-яё' -]{2,}$/,
+    nameSearch: /^[A-Za-zА-ЯЁа-яё' \-]{2,}$/,
     room: /^[1-9][0-9]{3}$/,
     fullName: /^[A-Za-zА-ЯЁа-яё]+(?:['-][A-Za-zА-ЯЁа-яё]+)*(?: [A-Za-zА-ЯЁа-яё]+(?:['-][A-Za-zА-ЯЁа-яё]+)*)+$/,
     username: /^[a-z0-9_]{3,32}$/,
     email: /^.+@.+\..+$/,
 };
 
+export const EARLIEST_CHECK_IN = "2000-01-01";
 const MAX_STAY_YEARS = 9;
 
 function today() {
@@ -33,9 +34,16 @@ function today() {
 }
 
 function addYears(isoDate, years) {
-    const date = new Date(`${isoDate}T00:00:00Z`);
-    date.setUTCFullYear(date.getUTCFullYear() + years);
+    const [year, month, day] = isoDate.split("-").map(Number);
+    const date = new Date(Date.UTC(year + years, month - 1, day));
+    if (date.getUTCMonth() !== month - 1) {
+        date.setUTCDate(0);
+    }
     return date.toISOString().slice(0, 10);
+}
+
+export function normalizeName(name) {
+    return name.trim().replace(/\s+/g, " ");
 }
 
 export function getDormitoryName(code) {
@@ -78,7 +86,7 @@ export function toStudentForm(student) {
 export function toStudentRequest(form) {
     return {
         isu_id: form.isu_id,
-        full_name: form.full_name.trim().replace(/\s+/g, " "),
+        full_name: normalizeName(form.full_name),
         group: form.group.trim().toUpperCase(),
         dormitory: form.dormitory,
         room: form.room.trim(),
@@ -111,14 +119,16 @@ export function validateStudent(form) {
     const latestCheckIn = addYears(today(), 1);
     if (!student.check_in) {
         errors.check_in = "Обязательное поле";
-    } else if (student.check_in < "2000-01-01" || student.check_in > latestCheckIn) {
-        errors.check_in = `Дата заселения — от 01.01.2000 до ${formatDate(latestCheckIn)}`;
+    } else if (student.check_in < EARLIEST_CHECK_IN || student.check_in > latestCheckIn) {
+        errors.check_in = `Дата заселения — от ${formatDate(EARLIEST_CHECK_IN)} до ${formatDate(latestCheckIn)}`;
     }
-    if (student.check_out && student.check_in && student.check_out <= student.check_in) {
-        errors.check_out = "Дата выселения должна быть позже даты заселения";
-    } else if (student.check_out && student.check_in && student.check_out > addYears(student.check_in, MAX_STAY_YEARS)) {
-        errors.check_out = `Дата выселения — не позже ${formatDate(addYears(student.check_in, MAX_STAY_YEARS))}: `
-            + `проживание не дольше ${MAX_STAY_YEARS} лет`;
+    if (student.check_out && student.check_in) {
+        const latestCheckOut = addYears(student.check_in, MAX_STAY_YEARS);
+        if (student.check_out <= student.check_in) {
+            errors.check_out = "Дата выселения должна быть позже даты заселения";
+        } else if (student.check_out > latestCheckOut) {
+            errors.check_out = `Дата выселения — не позже ${formatDate(latestCheckOut)}: проживание не дольше ${MAX_STAY_YEARS} лет`;
+        }
     }
     if (student.notes.length > 500) {
         errors.notes = "Заметки — не длиннее 500 символов";

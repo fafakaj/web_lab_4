@@ -1,4 +1,4 @@
-import { DORMITORIES } from "../domain/student.js";
+import { DORMITORIES, EARLIEST_CHECK_IN } from "../domain/student.js";
 import Field from "./Field.jsx";
 
 export default function StudentForm({ value, errors, isEdit, pending, onChange, onSubmit }) {
@@ -35,11 +35,11 @@ export default function StudentForm({ value, errors, isEdit, pending, onChange, 
             </Field>
             <Field id="check_in" label="Дата заселения" error={errors.check_in}>
                 <input id="check_in" name="check_in" type="date" value={value.check_in} onChange={handleChange}
-                       required min="2000-01-01" />
+                       required min={EARLIEST_CHECK_IN} />
             </Field>
             <Field id="check_out" label="Дата выселения (пусто — проживает сейчас)" error={errors.check_out}>
                 <input id="check_out" name="check_out" type="date" value={value.check_out} onChange={handleChange}
-                       min={value.check_in || "2000-01-01"} />
+                       min={value.check_in || EARLIEST_CHECK_IN} />
             </Field>
             <p>
                 <label className="checkbox-label">
