@@ -19,11 +19,24 @@ export const SORT_FIELDS = {
 export const PATTERNS = {
     isu: /^[0-9]{6}$/,
     group: /^[A-Z][0-9]{4}$/,
+    nameSearch: /^[A-Za-zА-ЯЁа-яё' -]{2,}$/,
     room: /^[1-9][0-9]{3}$/,
     fullName: /^[A-Za-zА-ЯЁа-яё]+(?:['-][A-Za-zА-ЯЁа-яё]+)*(?: [A-Za-zА-ЯЁа-яё]+(?:['-][A-Za-zА-ЯЁа-яё]+)*)+$/,
     username: /^[a-z0-9_]{3,32}$/,
     email: /^.+@.+\..+$/,
 };
+
+const MAX_STAY_YEARS = 9;
+
+function today() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function addYears(isoDate, years) {
+    const date = new Date(`${isoDate}T00:00:00Z`);
+    date.setUTCFullYear(date.getUTCFullYear() + years);
+    return date.toISOString().slice(0, 10);
+}
 
 export function getDormitoryName(code) {
     return DORMITORIES[code] || "—";
@@ -95,13 +108,17 @@ export function validateStudent(form) {
     if (!PATTERNS.room.test(student.room)) {
         errors.room = "Комната — ровно 4 цифры, первая не 0, например 1205";
     }
+    const latestCheckIn = addYears(today(), 1);
     if (!student.check_in) {
         errors.check_in = "Обязательное поле";
-    } else if (student.check_in < "2000-01-01") {
-        errors.check_in = "Дата заселения — не раньше 01.01.2000";
+    } else if (student.check_in < "2000-01-01" || student.check_in > latestCheckIn) {
+        errors.check_in = `Дата заселения — от 01.01.2000 до ${formatDate(latestCheckIn)}`;
     }
     if (student.check_out && student.check_in && student.check_out <= student.check_in) {
         errors.check_out = "Дата выселения должна быть позже даты заселения";
+    } else if (student.check_out && student.check_in && student.check_out > addYears(student.check_in, MAX_STAY_YEARS)) {
+        errors.check_out = `Дата выселения — не позже ${formatDate(addYears(student.check_in, MAX_STAY_YEARS))}: `
+            + `проживание не дольше ${MAX_STAY_YEARS} лет`;
     }
     if (student.notes.length > 500) {
         errors.notes = "Заметки — не длиннее 500 символов";

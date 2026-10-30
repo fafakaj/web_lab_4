@@ -83,16 +83,24 @@ async function doRefresh() {
     }
 
     const response = await send("POST", "/api/auth/refresh", { refresh_token: session.refresh_token });
-    if (!response.ok) {
+    if (!response.ok && response.status < 500) {
         return false;
     }
 
-    saveSession(await response.json());
+    const tokens = await readBody(response);
+    if (getSession()?.refresh_token !== session.refresh_token) {
+        return false;
+    }
+    saveSession(tokens);
     return true;
 }
 
-function refreshTokens(usedToken) {
-    if (getSession()?.access_token !== usedToken) {
+function refreshOnce(usedToken) {
+    const session = getSession();
+    if (!session) {
+        return Promise.resolve(false);
+    }
+    if (session.access_token !== usedToken) {
         return Promise.resolve(true);
     }
     if (!refreshing) {
@@ -107,8 +115,8 @@ export async function request(method, url, body, signal) {
     const token = getSession()?.access_token;
     let response = await send(method, url, body, token, signal);
 
-    if (response.status === 401 && token) {
-        if (await refreshTokens(token)) {
+    if (response.status === 401) {
+        if (token && await refreshOnce(token)) {
             response = await send(method, url, body, getSession()?.access_token, signal);
         }
         if (response.status === 401) {

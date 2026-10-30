@@ -27,8 +27,8 @@ export function AuthProvider({ children }) {
             await login(username, password);
         }
 
-        async function logout() {
-            await authApi.logout();
+        function logout() {
+            authApi.logout();
             setUser(null);
         }
 

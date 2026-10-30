@@ -25,6 +25,12 @@ export function updateStudent(isu, student) {
     return request("PUT", studentUrl(isu), fields);
 }
 
-export function deleteStudent(isu) {
-    return request("DELETE", studentUrl(isu));
+export async function deleteStudent(isu) {
+    try {
+        await request("DELETE", studentUrl(isu));
+    } catch (error) {
+        if (error.status !== 404) {
+            throw error;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 import { BehaviorSubject, Subject, debounceTime, distinctUntilChanged, filter, map, merge, scan, switchMap } from "rxjs";
 import { getStudents } from "../api/students.js";
+import { PATTERNS } from "../domain/student.js";
 import { loadWithStatus } from "./fromRequest.js";
 
 export const DEFAULT_PARAMS = {
@@ -17,15 +18,19 @@ export const DEFAULT_PARAMS = {
 
 export const INITIAL_LIST_STATE = { status: "loading", data: null, error: null };
 
-function isComplete(params) {
+function isReadyToSearch(params) {
     const name = params.full_name.trim();
-    return name.length !== 1
-        && (params.group === "" || /^[A-Za-z][0-9]{4}$/.test(params.group))
-        && (params.room === "" || /^[1-9][0-9]{3}$/.test(params.room));
+    return (name === "" || PATTERNS.nameSearch.test(name))
+        && (params.group === "" || PATTERNS.group.test(params.group.toUpperCase()))
+        && (params.room === "" || PATTERNS.room.test(params.room));
 }
 
 function toQuery(params) {
-    return { ...params, full_name: params.full_name.trim().replace(/\s+/g, " ") };
+    return {
+        ...params,
+        full_name: params.full_name.trim().replace(/\s+/g, " "),
+        group: params.group.toUpperCase(),
+    };
 }
 
 export function createStudentList() {
@@ -34,7 +39,7 @@ export function createStudentList() {
 
     const query$ = params$.pipe(
         debounceTime(300),
-        filter(isComplete),
+        filter(isReadyToSearch),
         map(toQuery),
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
     );

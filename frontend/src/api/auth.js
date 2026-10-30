@@ -10,11 +10,11 @@ export function register(username, email, password) {
     return publicRequest("POST", "/api/auth/register", { username, email, password });
 }
 
-export async function logout() {
+export function logout() {
     const session = getSession();
     clearSession();
     if (session) {
-        await publicRequest("POST", "/api/auth/logout", { refresh_token: session.refresh_token }).catch(() => null);
+        publicRequest("POST", "/api/auth/logout", { refresh_token: session.refresh_token }).catch(() => null);
     }
 }
 
